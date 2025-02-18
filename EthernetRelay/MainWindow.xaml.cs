@@ -1,28 +1,94 @@
 ﻿using System.Net.Sockets;
-using System.Net;
 using System.Windows;
 using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Data;
+using System.Windows.Controls;
 
 namespace EthernetRelay
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        }
+
+        private bool relay = false;
+
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void CheckBoxRelay1Click(object sender, RoutedEventArgs e)
         {
-            using var udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-            string message = "Hello METANIT.COM";
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            EndPoint remotePoint = new IPEndPoint(IPAddress.Parse("192.168.1.203"), 1200);
-            int bytes = await udpSocket.SendToAsync(data, remotePoint);
+            if (CheckBoxRelay1.IsChecked == true)
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 01 00 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+            }
+            else
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 00 00 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+            }
+        }
+
+        private void CheckBoxRelay2Click(object sender, RoutedEventArgs e)
+        {
+
+            if (CheckBoxRelay2.IsChecked == true)
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 00 01 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+            }
+            else
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 00 00 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+            }
+        }
+
+        private void ButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (!relay)
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 01 01 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+                ButtonOnOff.Content = ("Click to Off");
+                relay = true;
+            }
+            else
+            {
+                UdpClient client = new UdpClient();
+                client.Connect("192.168.1.203", 1200);
+                string message = ":01 00 00 00 00;";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                int numberOfSentBytes = client.Send(data, data.Length);
+                ButtonOnOff.Content = ("Click to On");
+                relay = false;
+            }
         }
     }
 }

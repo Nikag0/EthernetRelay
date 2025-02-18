@@ -7,8 +7,50 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="200" Width="200">
     <Grid>
-        <CheckBox x:Name="Rele1" HorizontalAlignment="Left" Content="Rele1" Margin="0,0,0,50"/>
-        <CheckBox x:Name="Rele2" HorizontalAlignment="Left" Content="Rele2" Margin="0,100,0,20"/>
-        <Button Click=" Button_Click" Margin="97,62,10,62"/>
+        <CheckBox x:Name="CheckBoxRelay1" Click="CheckBoxRelay1Click" HorizontalAlignment="Left" Content="Rele1" Margin="0,0,0,50">
+            <CheckBox.Style>
+                <Style TargetType = "CheckBox" >
+                    <Style.Triggers>
+
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="True">
+                            <Setter Property = "IsEnabled" Value="False" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to On">
+                            <Setter Property = "IsChecked" Value="False" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to Off">
+                            <Setter Property = "IsChecked" Value="True" />
+                        </DataTrigger>
+
+                    </Style.Triggers>
+                </Style>
+            </CheckBox.Style>
+        </CheckBox>
+
+        <CheckBox x:Name="CheckBoxRelay2" Click="CheckBoxRelay2Click" HorizontalAlignment="Left" Content="Rele2" Margin="0,100,0,20">
+            <CheckBox.Style>
+                <Style TargetType = "CheckBox" >
+                    <Style.Triggers>
+
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="True">
+                            <Setter Property = "IsEnabled" Value="False" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to On">
+                            <Setter Property = "IsChecked" Value="False" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to Off">
+                            <Setter Property = "IsChecked" Value="True" />
+                        </DataTrigger>
+
+                    </Style.Triggers>
+                </Style>
+            </CheckBox.Style>
+        </CheckBox>
+        <Button x:Name="ButtonOnOff" Content="Click to On" Click=" ButtonClick" Margin="97,62,10,62"/>
+        <TextBlock Margin="80,56,17,106" />
     </Grid>
 </Window>
