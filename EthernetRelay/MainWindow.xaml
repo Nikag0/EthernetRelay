@@ -5,52 +5,46 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EthernetRelay"
         mc:Ignorable="d"
-        Title="MainWindow" Height="200" Width="200">
+        Title="MainWindow" Height="350" Width="350">
     <Grid>
-        <CheckBox x:Name="CheckBoxRelay1" Click="CheckBoxRelay1Click" HorizontalAlignment="Left" Content="Rele1" Margin="0,0,0,50">
-            <CheckBox.Style>
-                <Style TargetType = "CheckBox" >
+        <CheckBox x:Name="CheckBoxRelay1" IsChecked="{Binding IsCheckedRele1}" Command="{Binding CheckBoxRelay1}" HorizontalAlignment="Left" Content="Rele1" Margin="0,21,0,29"/>
+        <CheckBox x:Name="CheckBoxRelay2" IsChecked="{Binding IsCheckedRele2}" Command="{Binding CheckBoxRelay2}" HorizontalAlignment="Left" Content="Rele2" Margin="0,121,0,-1"/>
+        <TextBox Text="{Binding RelayManager.Feedback}" Margin="133,57,10,171" />
+     
+        <Ellipse Margin="59,0,225,268">
+            <Ellipse.Style>
+                <Style TargetType="Ellipse">
                     <Style.Triggers>
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="True">
-                            <Setter Property = "IsEnabled" Value="False" />
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="False">
+                            <Setter Property="Fill" Value="Red" />
                         </DataTrigger>
 
-                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to On">
-                            <Setter Property = "IsChecked" Value="False" />
-                        </DataTrigger>
-
-                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to Off">
-                            <Setter Property = "IsChecked" Value="True" />
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="True ">
+                            <Setter Property="Fill" Value="Green" />
                         </DataTrigger>
 
                     </Style.Triggers>
                 </Style>
-            </CheckBox.Style>
-        </CheckBox>
-
-        <CheckBox x:Name="CheckBoxRelay2" Click="CheckBoxRelay2Click" HorizontalAlignment="Left" Content="Rele2" Margin="0,100,0,20">
-            <CheckBox.Style>
-                <Style TargetType = "CheckBox" >
+            </Ellipse.Style>
+        </Ellipse>
+        
+        <Ellipse Margin="59,100,225,168">
+            <Ellipse.Style>
+                <Style TargetType="Ellipse">
                     <Style.Triggers>
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="True">
-                            <Setter Property = "IsEnabled" Value="False" />
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="False">
+                            <Setter Property="Fill" Value="Red" />
                         </DataTrigger>
 
-                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to On">
-                            <Setter Property = "IsChecked" Value="False" />
-                        </DataTrigger>
-
-                        <DataTrigger Binding="{Binding ElementName=ButtonOnOff, Path=Content}" Value="Click to Off">
-                            <Setter Property = "IsChecked" Value="True" />
+                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="True ">
+                            <Setter Property="Fill" Value="Green" />
                         </DataTrigger>
 
                     </Style.Triggers>
                 </Style>
-            </CheckBox.Style>
-        </CheckBox>
-        <Button x:Name="ButtonOnOff" Content="Click to On" Click=" ButtonClick" Margin="97,62,10,62"/>
-        <TextBlock Margin="80,56,17,106" />
+            </Ellipse.Style>
+        </Ellipse>
     </Grid>
 </Window>
