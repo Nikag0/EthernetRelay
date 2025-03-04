@@ -15,7 +15,19 @@ namespace EthernetRelay
                 PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
 
-        private Relay relay = new Relay();
+        private byte[] feedbackByte;
+
+        public byte[] FeedbackByte
+        {
+            get => feedbackByte;
+            set
+            {
+                feedbackByte = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         private UdpClient client = new UdpClient();
 
         private string feedback = "";
@@ -30,84 +42,110 @@ namespace EthernetRelay
             }
         }
 
-        public void Connection()
-        {
-            GiveACommand(Commands.Condition);
+        private string connectionStatusStr = "";
 
-            IPEndPoint ip = null;
-            byte[] feedbackByte = client.Receive(ref ip);
-            int startIndex = 9;
-            int endIndex = 50;
-            int length = 42;
-            byte[] selectedArray = new byte[length];
-            Array.Copy(feedbackByte, startIndex, selectedArray, 0, length);
-            string FeedbackASCII = Encoding.ASCII.GetString(selectedArray);
-            byte[] data1 = Convert.FromHexString(FeedbackASCII);
-            string deviceName = System.Text.Encoding.UTF8.GetString(data1);
-            //if (relay.DeviceName != deviceName)
-            //{
-            //Feedback = "Имя устройства не совпадает с именем реле";
-            //}
-            Feedback = deviceName;
+        public string ConnectionStatusStr
+        {
+            get => connectionStatusStr;
+            set
+            {
+                connectionStatusStr = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private StatusConnect statusLaunching = StatusConnect.Unknown;
+        public StatusConnect StatusLaunching { get => statusLaunching; }
+
+        private string patternIP = @"^\d{3}\.\d{3}\.\d\.\d{3}$";
+
+        public string PatternIP { get => patternIP; }
+
+        public void GetState()
+        {
+            SendACommand(":03;");
+        }
+
+        public void Connect(Relay relay)
+        {
+            client.Connect(relay.Ip, relay.Port);
+            GetState();
+            AcceptFeedback();
+            ConnectionStatus(StatusConnect.Connect);
+        }
+
+        public void GetInputs(Relay Relay)
+        {
+            SendACommand(":02;");
+            AcceptFeedback();
+            int start = 3;
+            int stop = FeedbackByte.Length - 2;
+            int lenght = stop - start + 1;
+            byte[] selectedBytes = new byte[lenght];
+            Array.Copy(FeedbackByte, start, selectedBytes, 0, lenght);
+
+            int a = 0;
+
+            Relay.Inputs = new bool[lenght / 2];
+
+            for (int i = 0; i <= lenght - 1; i++)
+            {
+                if (i % 2 == 1)
+                {
+                    if (selectedBytes[i] == 49)
+                        Relay.Inputs[a] = true;
+                    else
+                        Relay.Inputs[a] = false;
+                    a++;
+                }
+            }
+        }
+
+        public void Disconnect()
+        {
+            client.Close();
+            ConnectionStatus(StatusConnect.Disconnect);
+            Feedback = "";
         }
 
         public void SendACommand(string message)
         {
-            client.Connect(relay.Ip, relay.Port);
             byte[] data = Encoding.UTF8.GetBytes(message);
             int numberOfSentBytes = client.Send(data, data.Length);
         }
 
-        public void OnOffRelay1(bool IsChecked)
+        public void AcceptFeedback()
         {
-
-            if (IsChecked == true)
-            {
-                GiveACommand(Commands.OnRelay1);
-            }
-            else
-            {
-                GiveACommand(Commands.OffRelay1);
-            }
+            IPEndPoint ip = null;
+            FeedbackByte = client.Receive(ref ip);
+            Feedback = Encoding.UTF8.GetString(feedbackByte);
         }
 
-        public void OnOffRelay2(bool IsChecked)
+        public void OnOffRelay(int nuumRele, bool IsChecked)
         {
             if (IsChecked == true)
             {
-                GiveACommand(Commands.OnRelay2);
+                SendACommand($":31 0{nuumRele} 01;");
             }
             else
             {
-                GiveACommand(Commands.OffRelay2);
-            }   
+                SendACommand($":31 0{nuumRele} 00;");
+            }
         }
-        enum Commands
+
+        public void ConnectionStatus(StatusConnect statusConnect)
         {
-            OnRelay1,
-            OffRelay1,
-            OnRelay2,
-            OffRelay2,
-            Condition
-        }
-        private void GiveACommand(Commands commands)
-        {
-            switch (commands)
+            switch (statusConnect)
             {
-                case Commands.OnRelay1:
-                    SendACommand(":31 01 01;");
+                case StatusConnect.Unknown:
+                    ConnectionStatusStr = "Unknown";
+                    Feedback = "The IP or Port fields are empty";
                     break;
-                case Commands.OffRelay1:
-                    SendACommand(":31 01 00;");
+                case StatusConnect.Connect:
+                    ConnectionStatusStr = "Connect";
                     break;
-                case Commands.OnRelay2:
-                    SendACommand(":31 02 01;");
-                    break;
-                case Commands.OffRelay2:
-                    SendACommand(":31 02 00;");
-                    break;
-                case Commands.Condition:
-                    SendACommand(":03;");
+                case StatusConnect.Disconnect:
+                    ConnectionStatusStr = "Disconnect";
                     break;
             }
         }

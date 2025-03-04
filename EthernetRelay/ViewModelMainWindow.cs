@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 
 namespace EthernetRelay
@@ -37,6 +39,16 @@ namespace EthernetRelay
             }
         }
 
+        private Relay relay = new Relay();
+        public Relay Relay
+        {
+            get => relay;
+            set
+            {
+                relay = value;
+            }
+        }
+
         private RelayManager relayManager = new RelayManager();
         public RelayManager RelayManager
         {
@@ -49,7 +61,32 @@ namespace EthernetRelay
 
         public ViewModelMainWindow()
         {
-            relayManager.Connection();
+
+            RelayManager.ConnectionStatus(RelayManager.StatusLaunching);
+        }
+
+        public ICommand Connect
+        {
+            get
+            {
+                return new DelegateCommands((obj) =>
+                {
+                    if (Regex.IsMatch(Relay.Ip, RelayManager.PatternIP) && Relay.Port > 0)
+                        RelayManager.Connect(Relay);
+                });
+            }
+        }
+
+        public ICommand Disconnect
+        {
+            get
+            {
+                return new DelegateCommands((obj) =>
+                {
+                    if (Regex.IsMatch(Relay.Ip, RelayManager.PatternIP) && Relay.Port > 0)
+                        RelayManager.Disconnect();
+                });
+            }
         }
 
         public ICommand CheckBoxRelay1
@@ -58,7 +95,7 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    relayManager.OnOffRelay1(IsCheckedRele1);
+                    RelayManager.OnOffRelay(1, IsCheckedRele1);
                 });
             }
         }
@@ -69,7 +106,18 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    relayManager.OnOffRelay2(IsCheckedRele2);
+                    RelayManager.OnOffRelay(2, IsCheckedRele2);
+                });
+            }
+        }
+
+        public ICommand GetInputs
+        {
+            get
+            {
+                return new DelegateCommands((obj) =>
+                {
+                   RelayManager.GetInputs(Relay);
                 });
             }
         }

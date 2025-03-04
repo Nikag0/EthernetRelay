@@ -7,44 +7,126 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="350">
     <Grid>
-        <CheckBox x:Name="CheckBoxRelay1" IsChecked="{Binding IsCheckedRele1}" Command="{Binding CheckBoxRelay1}" HorizontalAlignment="Left" Content="Rele1" Margin="0,21,0,29"/>
-        <CheckBox x:Name="CheckBoxRelay2" IsChecked="{Binding IsCheckedRele2}" Command="{Binding CheckBoxRelay2}" HorizontalAlignment="Left" Content="Rele2" Margin="0,121,0,-1"/>
-        <TextBox Text="{Binding RelayManager.Feedback}" Margin="133,57,10,171" />
-     
-        <Ellipse Margin="59,0,225,268">
-            <Ellipse.Style>
-                <Style TargetType="Ellipse">
-                    <Style.Triggers>
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="False">
-                            <Setter Property="Fill" Value="Red" />
-                        </DataTrigger>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="True ">
-                            <Setter Property="Fill" Value="Green" />
+        <Canvas Grid.Row="0" Background="Lavender">
+
+            <TextBlock Text="IP: 192.168.1.203" Canvas.Top="15" Canvas.Left="10" Width="100"/>
+
+            <TextBox Text="{Binding Relay.Ip}" Canvas.Top="30" Canvas.Left="10" Width="100"/>
+
+            <TextBlock Text="Port: 1200" Canvas.Top="45" Canvas.Left="10" Width="100"/>
+
+            <TextBox Text="{Binding Relay.Port}" Canvas.Top="60" Canvas.Left="10" Width="100"/>
+
+            <TextBlock Text="Connection status:" Canvas.Top="15" Canvas.Left="120" Width="100"/>
+
+            <TextBlock x:Name="ConnectionStatusStr" Text="{Binding RelayManager.ConnectionStatusStr}" Canvas.Top="30" Canvas.Left="120" Width="200"/>
+
+            <Button Content="Connect" Canvas.Top="60" Canvas.Left="120" Width="80" Height="18" 
+                    Command="{Binding Connect}"/>
+
+            <Button Content="Disconnect" Canvas.Top="60" Canvas.Left="220" Width="80" Height="18"
+                    Command="{Binding Disconnect}"/>
+
+            <TextBlock Text="Feedback:" Canvas.Top="100" Canvas.Left="10" Width="55"/>
+            <TextBox Text="{Binding RelayManager.Feedback}" TextWrapping="Wrap" IsReadOnly="True" Canvas.Top="100" Canvas.Left="70" Width="270"/>
+
+        </Canvas>
+
+        <Canvas Grid.Row="1" Background="AliceBlue">
+
+            <Canvas.Style>
+                <Style TargetType="Canvas">
+                    <Setter Property="IsEnabled" Value="False"/>
+                    <Style.Triggers >
+
+                        <DataTrigger Binding="{Binding ElementName=ConnectionStatusStr, Path=Text}" Value="Connect">
+                            <Setter Property="IsEnabled" Value="True" />
                         </DataTrigger>
 
                     </Style.Triggers>
                 </Style>
-            </Ellipse.Style>
-        </Ellipse>
-        
-        <Ellipse Margin="59,100,225,168">
-            <Ellipse.Style>
-                <Style TargetType="Ellipse">
-                    <Style.Triggers>
+            </Canvas.Style>
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="False">
-                            <Setter Property="Fill" Value="Red" />
-                        </DataTrigger>
+            <CheckBox x:Name="CheckBoxRelay1" Content="Rele1" Canvas.Bottom="100" Canvas.Left="10" 
+                      Command="{Binding CheckBoxRelay1}" IsChecked="{Binding IsCheckedRele1}"  
+            />
 
-                        <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="True ">
-                            <Setter Property="Fill" Value="Green" />
-                        </DataTrigger>
+            <CheckBox x:Name="CheckBoxRelay2" Content="Rele2" Canvas.Bottom="70" Canvas.Left="10" 
+                      IsChecked="{Binding IsCheckedRele2}" Command="{Binding CheckBoxRelay2}"                  
+            />
 
-                    </Style.Triggers>
-                </Style>
-            </Ellipse.Style>
-        </Ellipse>
+            <Ellipse Canvas.Bottom="102" Canvas.Left="65" Height="13" Width="13">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="Red"/>
+                        <Style.Triggers >
+
+                            <DataTrigger Binding="{Binding ElementName=CheckBoxRelay1, Path=IsChecked}" Value="True ">
+                                <Setter Property="Fill" Value="Green" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+
+            <Ellipse Canvas.Bottom="72" Canvas.Left="65" Height="13" Width="13">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="Red"/>
+                        <Style.Triggers>
+
+                            <DataTrigger Binding="{Binding ElementName=CheckBoxRelay2, Path=IsChecked}" Value="True ">
+                                <Setter Property="Fill" Value="Green" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+
+            <TextBlock Text="Input1" Canvas.Top="50" Canvas.Left="90" Width="40"/>
+            <TextBlock Text="Input2" Canvas.Top="80" Canvas.Left="90" Width="40"/>
+
+            <Ellipse Canvas.Bottom="102" Canvas.Left="130" Height="13" Width="13">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="Red"/>
+                        <Style.Triggers >
+
+                            <DataTrigger Binding="{Binding Relay.Inputs[0]}" Value="True ">
+                                <Setter Property="Fill" Value="Green" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+
+            <Ellipse Canvas.Bottom="72" Canvas.Left="130" Height="13" Width="13">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="Red"/>
+                        <Style.Triggers >
+
+                            <DataTrigger Binding="{Binding Relay.Inputs[1]}" Value="True ">
+                                <Setter Property="Fill" Value="Green" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+
+            <Button Content="GetInputs" Canvas.Top="60" Canvas.Left="150" Width="80" Height="18" 
+                    Command="{Binding GetInputs}"/>
+        </Canvas>
     </Grid>
+
 </Window>
