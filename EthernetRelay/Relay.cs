@@ -1,24 +1,18 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace EthernetRelay 
 {
     public class Relay : INotifyPropertyChanged
     {
-   
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-        }
-
         private string deviceName = "CACED0D2C5CAD12032783220762E312E3220623435";
         private string ip = ""; 
         private int port; 
+        private ObservableCollection<bool> inputs = new ObservableCollection<bool>();
 
-        public string DeviceName
-        { get => deviceName; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public string DeviceName { get => deviceName; }
         public string Ip
         { 
             get => ip;
@@ -28,7 +22,6 @@ namespace EthernetRelay
                 OnPropertyChanged();
             }
         }
-
         public int Port
         { 
             get => port;
@@ -38,17 +31,20 @@ namespace EthernetRelay
                 OnPropertyChanged();
             }
         }
-
-        private bool[] inputs;
-
-        public bool[] Inputs
-        {
+        public ObservableCollection<bool> Inputs 
+        { 
             get => inputs;
             set
             {
                 inputs = value;
                 OnPropertyChanged();
             }
+        }
+
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
     }
 }

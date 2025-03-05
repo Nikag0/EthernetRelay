@@ -8,31 +8,26 @@ namespace EthernetRelay
 {
     public class RelayManager : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-        }
-
+        private StatusConnect statusLaunching = StatusConnect.Unknown;
+        private UdpClient client = new UdpClient();
+        private string connectionStatusStr = "";
+        private string patternIP = @"^\d{3}\.\d{3}\.\d\.\d{3}$";
+        private string feedback = "";
         private byte[] feedbackByte;
 
-        public byte[] FeedbackByte
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public StatusConnect StatusLaunching {get => statusLaunching;}
+        public string ConnectionStatusStr 
         {
-            get => feedbackByte;
+            get => connectionStatusStr;
             set
             {
-                feedbackByte = value;
+                connectionStatusStr = value;
                 OnPropertyChanged();
             }
         }
-
-
-        private UdpClient client = new UdpClient();
-
-        private string feedback = "";
-
-        public string Feedback
+        public string PatternIP {get => patternIP;}
+        public string Feedback 
         {
             get => feedback;
             set
@@ -42,24 +37,11 @@ namespace EthernetRelay
             }
         }
 
-        private string connectionStatusStr = "";
-
-        public string ConnectionStatusStr
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
-            get => connectionStatusStr;
-            set
-            {
-                connectionStatusStr = value;
-                OnPropertyChanged();
-            }
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
-
-        private StatusConnect statusLaunching = StatusConnect.Unknown;
-        public StatusConnect StatusLaunching { get => statusLaunching; }
-
-        private string patternIP = @"^\d{3}\.\d{3}\.\d\.\d{3}$";
-
-        public string PatternIP { get => patternIP; }
 
         public void GetState()
         {
@@ -68,10 +50,18 @@ namespace EthernetRelay
 
         public void Connect(Relay relay)
         {
-            client.Connect(relay.Ip, relay.Port);
-            GetState();
-            AcceptFeedback();
-            ConnectionStatus(StatusConnect.Connect);
+            client.Client.ReceiveTimeout = 500;
+            try
+            {
+                client.Connect(relay.Ip, relay.Port);
+                GetState();
+                AcceptFeedback();
+                ConnectionStatus(StatusConnect.Connect);
+            }
+            catch (SocketException)
+            {
+                Feedback = "Ответа не получено";
+            }
         }
 
         public void GetInputs(Relay Relay)
@@ -79,23 +69,22 @@ namespace EthernetRelay
             SendACommand(":02;");
             AcceptFeedback();
             int start = 3;
-            int stop = FeedbackByte.Length - 2;
+            int stop = feedbackByte.Length - 2;
             int lenght = stop - start + 1;
             byte[] selectedBytes = new byte[lenght];
-            Array.Copy(FeedbackByte, start, selectedBytes, 0, lenght);
+            Array.Copy(feedbackByte, start, selectedBytes, 0, lenght);
 
+            Relay.Inputs.Clear();
             int a = 0;
-
-            Relay.Inputs = new bool[lenght / 2];
 
             for (int i = 0; i <= lenght - 1; i++)
             {
                 if (i % 2 == 1)
                 {
                     if (selectedBytes[i] == 49)
-                        Relay.Inputs[a] = true;
+                        Relay.Inputs.Add(true);
                     else
-                        Relay.Inputs[a] = false;
+                        Relay.Inputs.Add(false);
                     a++;
                 }
             }
@@ -105,7 +94,6 @@ namespace EthernetRelay
         {
             client.Close();
             ConnectionStatus(StatusConnect.Disconnect);
-            Feedback = "";
         }
 
         public void SendACommand(string message)
@@ -117,7 +105,7 @@ namespace EthernetRelay
         public void AcceptFeedback()
         {
             IPEndPoint ip = null;
-            FeedbackByte = client.Receive(ref ip);
+            feedbackByte = client.Receive(ref ip);
             Feedback = Encoding.UTF8.GetString(feedbackByte);
         }
 
@@ -143,9 +131,11 @@ namespace EthernetRelay
                     break;
                 case StatusConnect.Connect:
                     ConnectionStatusStr = "Connect";
+                    Feedback = "Устройство подключено";
                     break;
                 case StatusConnect.Disconnect:
                     ConnectionStatusStr = "Disconnect";
+                    Feedback = "Устройство отключено";
                     break;
             }
         }

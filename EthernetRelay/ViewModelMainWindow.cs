@@ -8,15 +8,22 @@ namespace EthernetRelay
 {
     class ViewModelMainWindow : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-        }
-
+        private RelayManager relayManager = new RelayManager();
+        private Relay relay = new Relay();
+        private bool isCheckedRele2;
         private bool isCheckedRele1;
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public RelayManager RelayManager 
+        {
+            get => relayManager;
+            set
+            {
+                relayManager = value;
+                OnPropertyChanged();
+            }
+        }
+        public Relay Relay {get => relay;}
         public bool IsCheckedRele1
         {
             get => isCheckedRele1;
@@ -26,9 +33,6 @@ namespace EthernetRelay
                 OnPropertyChanged();
             }
         }
-
-        private bool isCheckedRele2;
-
         public bool IsCheckedRele2
         {
             get => isCheckedRele2;
@@ -39,30 +43,15 @@ namespace EthernetRelay
             }
         }
 
-        private Relay relay = new Relay();
-        public Relay Relay
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
-            get => relay;
-            set
-            {
-                relay = value;
-            }
-        }
-
-        private RelayManager relayManager = new RelayManager();
-        public RelayManager RelayManager
-        {
-            get => relayManager;
-            set
-            {
-                relayManager = value;
-            }
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
 
         public ViewModelMainWindow()
         {
-
-            RelayManager.ConnectionStatus(RelayManager.StatusLaunching);
+            relayManager.ConnectionStatus(relayManager.StatusLaunching);
         }
 
         public ICommand Connect
@@ -71,8 +60,8 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    if (Regex.IsMatch(Relay.Ip, RelayManager.PatternIP) && Relay.Port > 0)
-                        RelayManager.Connect(Relay);
+                    if (Regex.IsMatch(relay.Ip, relayManager.PatternIP) && relay.Port > 0)
+                        relayManager.Connect(relay);
                 });
             }
         }
@@ -83,8 +72,8 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    if (Regex.IsMatch(Relay.Ip, RelayManager.PatternIP) && Relay.Port > 0)
-                        RelayManager.Disconnect();
+                    if (Regex.IsMatch(relay.Ip, relayManager.PatternIP) && relay.Port > 0)
+                        relayManager.Disconnect();
                 });
             }
         }
@@ -95,7 +84,7 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    RelayManager.OnOffRelay(1, IsCheckedRele1);
+                    relayManager.OnOffRelay(1, IsCheckedRele1);
                 });
             }
         }
@@ -106,7 +95,7 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                    RelayManager.OnOffRelay(2, IsCheckedRele2);
+                    relayManager.OnOffRelay(2, IsCheckedRele2);
                 });
             }
         }
@@ -117,7 +106,7 @@ namespace EthernetRelay
             {
                 return new DelegateCommands((obj) =>
                 {
-                   RelayManager.GetInputs(Relay);
+                   relayManager.GetInputs(relay);
                 });
             }
         }
