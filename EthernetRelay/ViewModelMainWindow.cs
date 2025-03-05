@@ -17,7 +17,7 @@ namespace EthernetRelay
         public RelayManager RelayManager 
         {
             get => relayManager;
-            set
+            private set
             {
                 relayManager = value;
                 OnPropertyChanged();

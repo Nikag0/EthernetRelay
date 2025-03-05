@@ -20,7 +20,7 @@ namespace EthernetRelay
         public string ConnectionStatusStr 
         {
             get => connectionStatusStr;
-            set
+            private set
             {
                 connectionStatusStr = value;
                 OnPropertyChanged();
@@ -30,11 +30,29 @@ namespace EthernetRelay
         public string Feedback 
         {
             get => feedback;
-            set
+            private set
             {
                 feedback = value;
                 OnPropertyChanged();
             }
+        }
+
+        private void SendACommand(string message)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            int numberOfSentBytes = client.Send(data, data.Length);
+        }
+
+        private bool AcceptFeedback()
+        {
+            IPEndPoint ip = null;
+            feedbackByte = client.Receive(ref ip);
+            if (feedbackByte != null)
+            {
+                feedback = Encoding.UTF8.GetString(feedbackByte);
+                return true;
+            }
+            return false;
         }
 
         public void OnPropertyChanged([CallerMemberName] string prop = "")
@@ -67,7 +85,7 @@ namespace EthernetRelay
         public void GetInputs(Relay Relay)
         {
             SendACommand(":02;");
-            AcceptFeedback();
+
             int start = 3;
             int stop = feedbackByte.Length - 2;
             int lenght = stop - start + 1;
@@ -96,18 +114,6 @@ namespace EthernetRelay
             ConnectionStatus(StatusConnect.Disconnect);
         }
 
-        public void SendACommand(string message)
-        {
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            int numberOfSentBytes = client.Send(data, data.Length);
-        }
-
-        public void AcceptFeedback()
-        {
-            IPEndPoint ip = null;
-            feedbackByte = client.Receive(ref ip);
-            Feedback = Encoding.UTF8.GetString(feedbackByte);
-        }
 
         public void OnOffRelay(int nuumRele, bool IsChecked)
         {

@@ -25,7 +25,7 @@
 
             <TextBlock Text="Connection status:" Canvas.Top="15" Canvas.Left="120" Width="100"/>
 
-            <TextBlock x:Name="ConnectionStatusStr" Text="{Binding RelayManager.ConnectionStatusStr}" Canvas.Top="30" Canvas.Left="120" Width="200"/>
+            <TextBlock x:Name="ConnectionStatusStr" Text="{Binding RelayManager.ConnectionStatusStr, Mode=OneWay}" Canvas.Top="30" Canvas.Left="120" Width="200"/>
 
             <Button Content="Connect" Canvas.Top="60" Canvas.Left="120" Width="80" Height="18" 
                     Command="{Binding Connect}"/>
@@ -34,7 +34,7 @@
                     Command="{Binding Disconnect}"/>
 
             <TextBlock Text="Feedback:" Canvas.Top="100" Canvas.Left="10" Width="55"/>
-            <TextBox Text="{Binding RelayManager.Feedback}" TextWrapping="Wrap" IsReadOnly="True" Canvas.Top="100" Canvas.Left="70" Width="270"/>
+            <TextBox Text="{Binding RelayManager.Feedback, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="True" Canvas.Top="100" Canvas.Left="70" Width="270"/>
 
         </Canvas>
 
