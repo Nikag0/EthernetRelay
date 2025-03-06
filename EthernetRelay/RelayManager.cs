@@ -30,7 +30,7 @@ namespace EthernetRelay
         public string Feedback 
         {
             get => feedback;
-            private set
+            set
             {
                 feedback = value;
                 OnPropertyChanged();
@@ -45,11 +45,25 @@ namespace EthernetRelay
 
         private bool AcceptFeedback()
         {
-            IPEndPoint ip = null;
-            feedbackByte = client.Receive(ref ip);
+            try
+            {
+                feedbackByte = null;
+                IPEndPoint ip = null;
+                feedbackByte = client.Receive(ref ip);
+            }
+            catch (SocketException ac)
+            {
+                if (ac.SocketErrorCode == SocketError.TimedOut)
+                    ConnectionStatus(StatusConnect.Unknown);
+                return false;
+            }
+
+            //IPEndPoint ip = null;
+            //feedbackByte = client.Receive(ref ip);
+
             if (feedbackByte != null)
             {
-                feedback = Encoding.UTF8.GetString(feedbackByte);
+                Feedback = Encoding.UTF8.GetString(feedbackByte);
                 return true;
             }
             return false;
@@ -66,19 +80,28 @@ namespace EthernetRelay
             SendACommand(":03;");
         }
 
-        public void Connect(Relay relay)
+        public void Connect(Relay Relay)
         {
+            client.Dispose();
+            client = new UdpClient();
+
             client.Client.ReceiveTimeout = 500;
             try
             {
-                client.Connect(relay.Ip, relay.Port);
+                client.Connect(Relay.Ip, Relay.Port);
                 GetState();
                 AcceptFeedback();
+                if (feedbackByte == null)
+                    ConnectionStatus(StatusConnect.Unknown);
+                else
                 ConnectionStatus(StatusConnect.Connect);
             }
-            catch (SocketException)
+            catch (SocketException co) 
             {
-                Feedback = "Ответа не получено";
+                if (co.SocketErrorCode == SocketError.TimedOut)
+                {
+                    ConnectionStatus(StatusConnect.Unknown);
+                }
             }
         }
 
@@ -86,24 +109,33 @@ namespace EthernetRelay
         {
             SendACommand(":02;");
 
-            int start = 3;
-            int stop = feedbackByte.Length - 2;
-            int lenght = stop - start + 1;
-            byte[] selectedBytes = new byte[lenght];
-            Array.Copy(feedbackByte, start, selectedBytes, 0, lenght);
-
-            Relay.Inputs.Clear();
-            int a = 0;
-
-            for (int i = 0; i <= lenght - 1; i++)
+            if (!AcceptFeedback())
             {
-                if (i % 2 == 1)
+                Disconnect();
+                return;
+            } 
+            else
+            {
+
+                int start = 3;
+                int stop = feedbackByte.Length - 2;
+                int lenght = stop - start + 1;
+                byte[] selectedBytes = new byte[lenght];
+                Array.Copy(feedbackByte, start, selectedBytes, 0, lenght);
+
+                Relay.Inputs.Clear();
+                int a = 0;
+
+                for (int i = 0; i <= lenght - 1; i++)
                 {
-                    if (selectedBytes[i] == 49)
-                        Relay.Inputs.Add(true);
-                    else
-                        Relay.Inputs.Add(false);
-                    a++;
+                    if (i % 2 == 1)
+                    {
+                        if (selectedBytes[i] == 49)
+                            Relay.Inputs.Add(true);
+                        else
+                            Relay.Inputs.Add(false);
+                        a++;
+                    }
                 }
             }
         }
@@ -117,14 +149,8 @@ namespace EthernetRelay
 
         public void OnOffRelay(int nuumRele, bool IsChecked)
         {
-            if (IsChecked == true)
-            {
-                SendACommand($":31 0{nuumRele} 01;");
-            }
-            else
-            {
-                SendACommand($":31 0{nuumRele} 00;");
-            }
+            SendACommand(IsChecked ? ($":31 0{nuumRele} 01;") : ($":31 0{nuumRele} 00;"));
+            AcceptFeedback();
         }
 
         public void ConnectionStatus(StatusConnect statusConnect)
@@ -133,7 +159,7 @@ namespace EthernetRelay
             {
                 case StatusConnect.Unknown:
                     ConnectionStatusStr = "Unknown";
-                    Feedback = "The IP or Port fields are empty";
+                    Feedback = "Ответа не получено";
                     break;
                 case StatusConnect.Connect:
                     ConnectionStatusStr = "Connect";
