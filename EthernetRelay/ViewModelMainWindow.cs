@@ -51,7 +51,7 @@ namespace EthernetRelay
 
         public ViewModelMainWindow()
         {
-            relayManager.ConnectionStatus(relayManager.StatusLaunching);
+            relayManager.SwitchStatusConnection(relayManager.StatusLaunching);
         }
 
         public ICommand Connect

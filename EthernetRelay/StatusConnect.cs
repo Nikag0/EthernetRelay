@@ -1,6 +1,6 @@
 ﻿namespace EthernetRelay
 {
-    public enum StatusConnect
+    public enum StatusConnection
     {
         Connect,
 

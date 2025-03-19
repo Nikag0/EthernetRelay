@@ -16,11 +16,14 @@
 
         <Canvas Grid.Row="0" Background="Lavender">
 
-            <TextBlock Text="IP: 192.168.1.203" Canvas.Top="15" Canvas.Left="10" Width="100"/>
+            <TextBox Text="192.168.1.203  1200" TextWrapping="Wrap" IsReadOnly="True" Background="Transparent" BorderBrush="Transparent" 
+                     Canvas.Top="80" Canvas.Left="10" Width="115" Height="15" />
+            
+            <TextBlock Text="IP-адрес:" Canvas.Top="15" Canvas.Left="10" Width="100" Height="15" />
 
             <TextBox Text="{Binding Relay.Ip}" Canvas.Top="30" Canvas.Left="10" Width="100"/>
 
-            <TextBlock Text="Port: 1200" Canvas.Top="45" Canvas.Left="10" Width="100"/>
+            <TextBlock Text="Порт:" Canvas.Top="45" Canvas.Left="10" Width="100" Height="15" />
 
             <TextBox Text="{Binding Relay.Port}" Canvas.Top="60" Canvas.Left="10" Width="100"/>
 
@@ -35,7 +38,8 @@
                     Command="{Binding Disconnect}"/>
 
             <TextBlock Text="Feedback:" Canvas.Top="100" Canvas.Left="10" Width="55"/>
-            <TextBox Text="{Binding RelayManager.Feedback, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="True" Canvas.Top="100" Canvas.Left="70" Width="270"/>
+            <TextBox Text="{Binding RelayManager.Feedback, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="True" Background="Transparent" BorderBrush="Transparent" 
+                     Canvas.Top="100" Canvas.Left="70" Width="270"/>
 
         </Canvas>
 

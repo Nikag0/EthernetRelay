@@ -8,15 +8,15 @@ namespace EthernetRelay
 {
     public class RelayManager : INotifyPropertyChanged
     {
-        private StatusConnect statusLaunching = StatusConnect.Unknown;
+        private StatusConnection statusLaunching = StatusConnection.Unknown;
         private UdpClient client = new UdpClient();
         private string connectionStatusStr = "";
         private string patternIP = @"^\d{3}\.\d{3}\.\d\.\d{3}$";
         private string feedback = "";
-        private byte[] feedbackByte;
+        private byte[]? feedbackByte;
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        public StatusConnect StatusLaunching {get => statusLaunching;}
+        public StatusConnection StatusLaunching {get => statusLaunching;}
         public string ConnectionStatusStr 
         {
             get => connectionStatusStr;
@@ -40,39 +40,40 @@ namespace EthernetRelay
         private void SendACommand(string message)
         {
             byte[] data = Encoding.UTF8.GetBytes(message);
-            int numberOfSentBytes = client.Send(data, data.Length);
+            int numberOfSentBytess = client.Client.Send(data);
         }
 
         private bool AcceptFeedback()
         {
+            client.Client.ReceiveTimeout = 500;
+            //feedbackByte = null;
+            IPEndPoint? ip = null;
+
             try
             {
-                feedbackByte = null;
-                IPEndPoint ip = null;
                 feedbackByte = client.Receive(ref ip);
             }
             catch (SocketException ac)
             {
                 if (ac.SocketErrorCode == SocketError.TimedOut)
-                    ConnectionStatus(StatusConnect.Unknown);
-                return false;
+                {
+                    SwitchStatusConnection(StatusConnection.Unknown);
+                    Feedback = "Ответ не получен. \n Проверьте данные в полях \"IP-адрес\", \"Порт\". Убедитесь, что все пропода подключены к устройству.";
+                    return false;
+                }
             }
-
-            //IPEndPoint ip = null;
-            //feedbackByte = client.Receive(ref ip);
 
             if (feedbackByte != null)
             {
                 Feedback = Encoding.UTF8.GetString(feedbackByte);
                 return true;
             }
-            return false;
-        }
+            else
+            {
+                Feedback = "Ответ получен пустым.";
+                return false;
+            }
 
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
 
         public void GetState()
@@ -82,27 +83,21 @@ namespace EthernetRelay
 
         public void Connect(Relay Relay)
         {
-            client.Dispose();
             client = new UdpClient();
+            client.Client.Connect(Relay.Ip, Relay.Port);
 
-            client.Client.ReceiveTimeout = 500;
-            try
-            {
-                client.Connect(Relay.Ip, Relay.Port);
                 GetState();
-                AcceptFeedback();
-                if (feedbackByte == null)
-                    ConnectionStatus(StatusConnect.Unknown);
-                else
-                ConnectionStatus(StatusConnect.Connect);
-            }
-            catch (SocketException co) 
-            {
-                if (co.SocketErrorCode == SocketError.TimedOut)
+                if (AcceptFeedback())
                 {
-                    ConnectionStatus(StatusConnect.Unknown);
+                    SwitchStatusConnection(StatusConnection.Connect);
                 }
-            }
+                else
+                    SwitchStatusConnection(StatusConnection.Unknown);
+        }
+        public void Disconnect()
+        {
+            client.Client.Close();
+            SwitchStatusConnection(StatusConnection.Disconnect);
         }
 
         public void GetInputs(Relay Relay)
@@ -140,36 +135,34 @@ namespace EthernetRelay
             }
         }
 
-        public void Disconnect()
+        public void OnOffRelay(int numRele, bool IsChecked)
         {
-            client.Close();
-            ConnectionStatus(StatusConnect.Disconnect);
-        }
-
-
-        public void OnOffRelay(int nuumRele, bool IsChecked)
-        {
-            SendACommand(IsChecked ? ($":31 0{nuumRele} 01;") : ($":31 0{nuumRele} 00;"));
+            SendACommand($":31 0{numRele} 0{(IsChecked ? "1;" : "0;")}");
             AcceptFeedback();
         }
 
-        public void ConnectionStatus(StatusConnect statusConnect)
+        public void SwitchStatusConnection(StatusConnection statusConnection)
         {
-            switch (statusConnect)
+            switch (statusConnection)
             {
-                case StatusConnect.Unknown:
+                case StatusConnection.Unknown:
                     ConnectionStatusStr = "Unknown";
-                    Feedback = "Ответа не получено";
                     break;
-                case StatusConnect.Connect:
+                case StatusConnection.Connect:
                     ConnectionStatusStr = "Connect";
                     Feedback = "Устройство подключено";
                     break;
-                case StatusConnect.Disconnect:
+                case StatusConnection.Disconnect:
                     ConnectionStatusStr = "Disconnect";
                     Feedback = "Устройство отключено";
                     break;
             }
+        }
+
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
     }
 }
