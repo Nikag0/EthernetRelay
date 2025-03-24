@@ -6,19 +6,19 @@
         xmlns:local="clr-namespace:EthernetRelay" 
         d:DataContext="{d:DesignInstance Type=local:ViewModelMainWindow}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="350">
+        Title="MainWindow" Height="300" Width="450">
     <Grid>
 
         <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="200*"></RowDefinition>
+            <RowDefinition Height="100*"></RowDefinition>
         </Grid.RowDefinitions>
 
         <Canvas Grid.Row="0" Background="Lavender">
 
             <TextBox Text="192.168.1.203  1200" TextWrapping="Wrap" IsReadOnly="True" Background="Transparent" BorderBrush="Transparent" 
-                     Canvas.Top="80" Canvas.Left="10" Width="115" Height="15" />
-            
+                     Canvas.Top="80" Canvas.Left="10" Width="115" Height="15" TextChanged="TextBox_TextChanged" />
+
             <TextBlock Text="IP-адрес:" Canvas.Top="15" Canvas.Left="10" Width="100" Height="15" />
 
             <TextBox Text="{Binding Relay.Ip}" Canvas.Top="30" Canvas.Left="10" Width="100"/>
@@ -43,7 +43,7 @@
 
         </Canvas>
 
-        <Canvas Grid.Row="1" Background="AliceBlue">
+        <Canvas Grid.Row="1" Background="AliceBlue" >
 
             <Canvas.Style>
                 <Style TargetType="Canvas">
@@ -58,15 +58,15 @@
                 </Style>
             </Canvas.Style>
 
-            <CheckBox x:Name="CheckBoxRelay1" Content="Rele1" Canvas.Bottom="100" Canvas.Left="10" 
+            <CheckBox x:Name="CheckBoxRelay1" Content="Rele1" Canvas.Top="20" Canvas.Left="10" 
                       Command="{Binding CheckBoxRelay1}" IsChecked="{Binding IsCheckedRele1}"  
             />
 
-            <CheckBox x:Name="CheckBoxRelay2" Content="Rele2" Canvas.Bottom="70" Canvas.Left="10" 
+            <CheckBox x:Name="CheckBoxRelay2" Content="Rele2" Canvas.Top="50" Canvas.Left="10" 
                       IsChecked="{Binding IsCheckedRele2}" Command="{Binding CheckBoxRelay2}"                  
             />
 
-            <Ellipse Canvas.Bottom="102" Canvas.Left="65" Height="13" Width="13">
+            <Ellipse Canvas.Top="20" Canvas.Left="65" Height="13" Width="13">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Fill" Value="Red"/>
@@ -81,7 +81,7 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <Ellipse Canvas.Bottom="72" Canvas.Left="65" Height="13" Width="13">
+            <Ellipse Canvas.Top="50" Canvas.Left="65" Height="13" Width="13">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Fill" Value="Red"/>
@@ -96,10 +96,11 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <TextBlock Text="Input1" Canvas.Top="50" Canvas.Left="90" Width="40"/>
-            <TextBlock Text="Input2" Canvas.Top="80" Canvas.Left="90" Width="40"/>
+            <TextBlock Text="Input1" Canvas.Top="20" Canvas.Left="90" Width="40"/>
 
-            <Ellipse Canvas.Bottom="102" Canvas.Left="130" Height="13" Width="13">
+            <TextBlock Text="Input2" Canvas.Top="50" Canvas.Left="90" Width="40"/>
+
+            <Ellipse Canvas.Top="20" Canvas.Left="130" Height="13" Width="13">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Fill" Value="Red"/>
@@ -114,7 +115,7 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <Ellipse Canvas.Bottom="72" Canvas.Left="130" Height="13" Width="13">
+            <Ellipse Canvas.Top="50" Canvas.Left="130" Height="13" Width="13">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Fill" Value="Red"/>
@@ -129,7 +130,7 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <Button Content="GetInputs" Canvas.Top="60" Canvas.Left="150" Width="80" Height="18" 
+            <Button Content="GetInputs" Canvas.Top="20" Canvas.Left="170" Width="80" Height="18" 
                     Command="{Binding GetInputs}"/>
         </Canvas>
     </Grid>

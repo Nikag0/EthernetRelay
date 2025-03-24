@@ -3,13 +3,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace EthernetRelay
-{
+{           
     public class RelayManager : INotifyPropertyChanged
     {
-        private StatusConnection statusLaunching = StatusConnection.Unknown;
+        private StatusConnection statusLaunching = StatusConnection.Disconnect;
         private UdpClient client = new UdpClient();
+        private Relay relay = new Relay();
         private string connectionStatusStr = "";
         private string patternIP = @"^\d{3}\.\d{3}\.\d\.\d{3}$";
         private string feedback = "";
@@ -46,7 +48,6 @@ namespace EthernetRelay
         private bool AcceptFeedback()
         {
             client.Client.ReceiveTimeout = 500;
-            //feedbackByte = null;
             IPEndPoint? ip = null;
 
             try
@@ -57,8 +58,6 @@ namespace EthernetRelay
             {
                 if (ac.SocketErrorCode == SocketError.TimedOut)
                 {
-                    SwitchStatusConnection(StatusConnection.Unknown);
-                    Feedback = "Ответ не получен. \n Проверьте данные в полях \"IP-адрес\", \"Порт\". Убедитесь, что все пропода подключены к устройству.";
                     return false;
                 }
             }
@@ -70,55 +69,60 @@ namespace EthernetRelay
             }
             else
             {
-                Feedback = "Ответ получен пустым.";
                 return false;
             }
 
         }
 
-        public void GetState()
+        private void SetStatus()
         {
-            SendACommand(":03;");
+            SwitchStatusConnection(StatusConnection.Unknown);
+            if (AcceptFeedback())
+            {
+                SwitchStatusConnection(StatusConnection.Connect);
+            }
+            else
+            {
+                SwitchStatusConnection(StatusConnection.Unknown);
+            }
         }
 
-        public void Connect(Relay Relay)
+        private void GetInfo()
+        {
+            //Получение текущего состояния входов. Для синхронизации реле на момент подключения.
+            SendACommand(":04;");
+            SetStatus();
+            //Можно выделить if из метода GetInputs в отдельный метод для парсинга ответа от реле.
+        }
+
+        public void Connect()
         {
             client = new UdpClient();
-            client.Client.Connect(Relay.Ip, Relay.Port);
+            client.Client.Connect(relay.Ip, relay.Port);
 
-                GetState();
-                if (AcceptFeedback())
-                {
-                    SwitchStatusConnection(StatusConnection.Connect);
-                }
-                else
-                    SwitchStatusConnection(StatusConnection.Unknown);
+            GetInfo();
         }
+
         public void Disconnect()
         {
             client.Client.Close();
             SwitchStatusConnection(StatusConnection.Disconnect);
         }
 
-        public void GetInputs(Relay Relay)
+        public void GetInputs()
         {
             SendACommand(":02;");
+            SetStatus();
 
-            if (!AcceptFeedback())
+            if (feedback != null)
             {
-                Disconnect();
-                return;
-            } 
-            else
-            {
-
                 int start = 3;
                 int stop = feedbackByte.Length - 2;
                 int lenght = stop - start + 1;
                 byte[] selectedBytes = new byte[lenght];
                 Array.Copy(feedbackByte, start, selectedBytes, 0, lenght);
 
-                Relay.Inputs.Clear();
+                relay.Inputs.Clear();
                 int a = 0;
 
                 for (int i = 0; i <= lenght - 1; i++)
@@ -126,9 +130,9 @@ namespace EthernetRelay
                     if (i % 2 == 1)
                     {
                         if (selectedBytes[i] == 49)
-                            Relay.Inputs.Add(true);
+                            relay.Inputs.Add(true);
                         else
-                            Relay.Inputs.Add(false);
+                            relay.Inputs.Add(false);
                         a++;
                     }
                 }
@@ -138,7 +142,7 @@ namespace EthernetRelay
         public void OnOffRelay(int numRele, bool IsChecked)
         {
             SendACommand($":31 0{numRele} 0{(IsChecked ? "1;" : "0;")}");
-            AcceptFeedback();
+            SetStatus();
         }
 
         public void SwitchStatusConnection(StatusConnection statusConnection)
@@ -147,6 +151,7 @@ namespace EthernetRelay
             {
                 case StatusConnection.Unknown:
                     ConnectionStatusStr = "Unknown";
+                    Feedback = "Ответ не получен. \n Проверьте данные в полях \"IP-адрес\" и \"Порт\". Убедитесь, что все пропода подключены к устройству.";
                     break;
                 case StatusConnection.Connect:
                     ConnectionStatusStr = "Connect";
